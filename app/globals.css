@@ -1,0 +1,138 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --cream: #FBF4D8;
+  --cream-dark: #F2E7BE;
+  --cream-border: #DFD1A0;
+  --teal: #0B4654;
+  --teal-deep: #07313B;
+  --teal-light: #146072;
+  --ink: #0E2A31;
+  --muted: #52727A;
+  --ochre: #C87D28;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-inter), sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cream-dark);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--teal);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--teal-light);
+}
+
+/* Subtle Parchment Grain Texture */
+.grain {
+  position: relative;
+}
+.grain::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Teal gradient dividers */
+.teal-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--teal), transparent);
+  opacity: 0.25;
+}
+
+.cream-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cream), transparent);
+  opacity: 0.25;
+}
+
+/* Button base styles */
+.btn-teal {
+  @apply bg-garud-teal text-garud-cream font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-block transition-all duration-300;
+}
+.btn-teal:hover {
+  @apply bg-garud-teal-light;
+}
+
+.btn-cream {
+  @apply bg-garud-cream text-garud-teal font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-block transition-all duration-300;
+}
+.btn-cream:hover {
+  @apply bg-garud-cream-dark;
+}
+
+.btn-outline-teal {
+  @apply border border-garud-teal text-garud-teal font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-block transition-all duration-300;
+}
+.btn-outline-teal:hover {
+  @apply bg-garud-teal text-garud-cream;
+}
+
+.btn-outline-cream {
+  @apply border border-garud-cream/50 text-garud-cream font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-block transition-all duration-300;
+}
+.btn-outline-cream:hover {
+  @apply bg-garud-cream text-garud-teal border-garud-cream;
+}
+
+/* Selection color */
+::selection {
+  background: var(--teal);
+  color: var(--cream);
+}
+
+/* Announcement bar ticker */
+@keyframes ticker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+.animate-ticker {
+  animation: ticker 35s linear infinite;
+}
+.animate-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Page transitions */
+@keyframes pageIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-in {
+  animation: pageIn 0.5s ease forwards;
+}
+
+/* Cart sidebar overlay */
+.cart-overlay {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
