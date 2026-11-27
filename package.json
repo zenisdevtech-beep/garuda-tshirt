@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "postinstall": "prisma generate",
+    "build": "prisma generate && prisma db push --skip-generate && node prisma/seed.mjs && UV_THREADPOOL_SIZE=2 next build",
     "start": "next start",
     "lint": "next lint"
   },
