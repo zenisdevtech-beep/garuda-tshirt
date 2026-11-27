@@ -6,6 +6,6 @@ export async function POST(req: NextRequest) {
   if (!verifyOrigin(req)) {
     return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
   }
-  clearSessionCookie();
+  await clearSessionCookie();
   return NextResponse.json({ success: true });
 }

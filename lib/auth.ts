@@ -67,7 +67,7 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export async function getSessionUser() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
   const payload = verifyToken(token);
@@ -106,8 +106,8 @@ export async function requireAdmin() {
   return { error: null, status: 200 as const, user };
 }
 
-export function setSessionCookie(token: string) {
-  cookies().set(SESSION_COOKIE, token, {
+export async function setSessionCookie(token: string) {
+  (await cookies()).set(SESSION_COOKIE, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
@@ -116,8 +116,8 @@ export function setSessionCookie(token: string) {
   });
 }
 
-export function clearSessionCookie() {
-  cookies().set(SESSION_COOKIE, '', {
+export async function clearSessionCookie() {
+  (await cookies()).set(SESSION_COOKIE, '', {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
@@ -126,8 +126,8 @@ export function clearSessionCookie() {
   });
 }
 
-export function getOrCreateCartSessionId(): string {
-  const store = cookies();
+export async function getOrCreateCartSessionId(): Promise<string> {
+  const store = await cookies();
   const existing = store.get(CART_SESSION_COOKIE)?.value;
   if (existing && existing.length >= 12) return existing;
   const created = crypto.randomBytes(16).toString('hex');
@@ -141,6 +141,6 @@ export function getOrCreateCartSessionId(): string {
   return created;
 }
 
-export function getCartSessionId(): string | null {
-  return cookies().get(CART_SESSION_COOKIE)?.value ?? null;
+export async function getCartSessionId(): Promise<string | null> {
+  return (await cookies()).get(CART_SESSION_COOKIE)?.value ?? null;
 }

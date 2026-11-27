@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useParams } from 'next/navigation';
 import { CheckCircle2, Package, Truck } from 'lucide-react';
 
 interface OrderData {
@@ -35,13 +35,15 @@ interface OrderData {
   }>;
 }
 
-export default function OrderSuccessPage({ params }: { params: { orderNumber: string } }) {
+export default function OrderSuccessPage() {
+  const params = useParams<{ orderNumber: string }>();
   const searchParams = useSearchParams();
   const email = searchParams.get('email') || '';
   const [order, setOrder] = useState<OrderData | null>(null);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (!params?.orderNumber) return;
     const q = email ? `?email=${encodeURIComponent(email)}` : '';
     fetch(`/api/orders/${encodeURIComponent(params.orderNumber)}${q}`)
       .then(async r => {
@@ -50,7 +52,7 @@ export default function OrderSuccessPage({ params }: { params: { orderNumber: st
         setOrder(d.order);
       })
       .catch(err => setError(err.message));
-  }, [params.orderNumber, email]);
+  }, [params?.orderNumber, email]);
 
   if (error) {
     return (

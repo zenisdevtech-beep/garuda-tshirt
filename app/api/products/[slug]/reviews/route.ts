@@ -13,7 +13,7 @@ const reviewSchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   if (!verifyOrigin(req)) {
     return NextResponse.json({ error: 'Invalid origin' }, { status: 403 });
@@ -24,7 +24,8 @@ export async function POST(
   }
 
   try {
-    const product = await prisma.product.findUnique({ where: { slug: params.slug } });
+    const { slug } = await params;
+    const product = await prisma.product.findUnique({ where: { slug } });
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }

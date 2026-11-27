@@ -7,11 +7,12 @@ import ProductDetailClient from '@/components/ProductDetailClient';
 export const dynamic = 'force-dynamic';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const product = await prisma.product.findUnique({ where: { slug: params.slug } });
+  const { slug } = await params;
+  const product = await prisma.product.findUnique({ where: { slug } });
   if (!product) return { title: 'Product Not Found — GARUD' };
   return {
     title: `${product.name} — GARUD`,
@@ -20,8 +21,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProductPage({ params }: Props) {
+  const { slug } = await params;
   const product = await prisma.product.findUnique({
-    where: { slug: params.slug },
+    where: { slug },
     include: {
       variants: true,
       reviews: { orderBy: { createdAt: 'desc' }, take: 25 },

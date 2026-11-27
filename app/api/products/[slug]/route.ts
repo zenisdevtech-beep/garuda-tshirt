@@ -4,11 +4,12 @@ import { serializeProduct } from '@/lib/product-utils';
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
+    const { slug } = await params;
     const product = await prisma.product.findUnique({
-      where: { slug: params.slug },
+      where: { slug },
       include: {
         variants: true,
         reviews: {

@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ order: existingOrder, duplicate: true });
     }
 
-    const sessionId = getOrCreateCartSessionId();
+    const sessionId = await getOrCreateCartSessionId();
 
     const updatedOrder = await prisma.$transaction(async (tx) => {
       for (const item of existingOrder.items) {

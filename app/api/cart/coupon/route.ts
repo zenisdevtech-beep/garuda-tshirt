@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const code = typeof body?.code === 'string' ? body.code : '';
-    const sessionId = getOrCreateCartSessionId();
+    const sessionId = await getOrCreateCartSessionId();
     const cart = await calculateServerCart(sessionId, code);
     return NextResponse.json(cart, { status: cart.couponValid || !code.trim() ? 200 : 400 });
   } catch {

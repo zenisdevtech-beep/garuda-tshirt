@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       await prisma.otpVerification.delete({ where: { id: otpRecord.id } });
     }
 
-    const sid = getCartSessionId();
+    const sid = await getCartSessionId();
     if (sid) {
       await prisma.cartItem.updateMany({
         where: { sessionId: sid, userId: null },
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest) {
 
     const role = user.role === 'ADMIN' ? 'ADMIN' : 'CUSTOMER';
     const token = signToken({ userId: user.id, email: user.email, role });
-    setSessionCookie(token);
+    await setSessionCookie(token);
 
     return NextResponse.json({
       user: {

@@ -94,7 +94,7 @@ export async function POST(req: NextRequest) {
       select: { id: true, name: true, email: true, phone: true, role: true, emailVerified: true },
     });
 
-    const sid = getCartSessionId();
+    const sid = await getCartSessionId();
     if (sid) {
       await prisma.cartItem.updateMany({
         where: { sessionId: sid, userId: null },
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = signToken({ userId: user.id, email: user.email, role: 'CUSTOMER' });
-    setSessionCookie(token);
+    await setSessionCookie(token);
 
     return NextResponse.json({ user }, { status: 201 });
   } catch {

@@ -21,7 +21,7 @@ const patchSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
-    const sessionId = getOrCreateCartSessionId();
+    const sessionId = await getOrCreateCartSessionId();
     const coupon = req.nextUrl.searchParams.get('coupon');
     const cart = await calculateServerCart(sessionId, coupon);
     return NextResponse.json(cart);
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'This size/color is currently out of stock.' }, { status: 400 });
     }
 
-    const sessionId = getOrCreateCartSessionId();
+    const sessionId = await getOrCreateCartSessionId();
     const user = await getSessionUser();
 
     const existing = await prisma.cartItem.findUnique({
@@ -102,7 +102,7 @@ export async function PATCH(req: NextRequest) {
   }
 
   try {
-    const sessionId = getOrCreateCartSessionId();
+    const sessionId = await getOrCreateCartSessionId();
     const body = await req.json();
     const parsed = patchSchema.safeParse(body);
     if (!parsed.success) {
@@ -180,7 +180,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   try {
-    const sessionId = getOrCreateCartSessionId();
+    const sessionId = await getOrCreateCartSessionId();
     const itemId = req.nextUrl.searchParams.get('itemId');
     if (itemId) {
       await prisma.cartItem.deleteMany({ where: { id: itemId, sessionId } });

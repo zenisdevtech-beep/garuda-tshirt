@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Invalid checkout fields' }, { status: 400 });
     }
 
-    const sessionId = getOrCreateCartSessionId();
+    const sessionId = await getOrCreateCartSessionId();
     const user = await getSessionUser();
     const cart = await calculateServerCart(sessionId, parsed.data.couponCode);
 
