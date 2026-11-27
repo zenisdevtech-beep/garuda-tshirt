@@ -1,127 +1,205 @@
 'use client';
 
-import React, { createContext, useContext, useReducer, ReactNode } from 'react';
-import { Product } from '@/data/products';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import type { ProductDTO } from '@/lib/product-utils';
 
-export interface CartItem {
-  product: Product;
-  quantity: number;
+export interface ServerCartItem {
+  id: string;
+  productId: string;
   size: string;
   color: string;
+  quantity: number;
+  availableStock: number;
+  inStock: boolean;
+  lineTotal: number;
+  product: ProductDTO;
 }
 
 interface CartState {
-  items: CartItem[];
-  isOpen: boolean;
+  items: ServerCartItem[];
+  totalItems: number;
+  subtotal: number;
+  discount: number;
+  couponCode: string | null;
+  couponMessage: string;
+  couponValid: boolean;
+  shippingCharge: number;
+  freeShippingThreshold: number;
+  total: number;
+  codEnabled: boolean;
 }
 
-type CartAction =
-  | { type: 'ADD_ITEM'; payload: CartItem }
-  | { type: 'REMOVE_ITEM'; payload: { productId: string; size: string; color: string } }
-  | { type: 'UPDATE_QUANTITY'; payload: { productId: string; size: string; color: string; quantity: number } }
-  | { type: 'TOGGLE_CART' }
-  | { type: 'OPEN_CART' }
-  | { type: 'CLOSE_CART' }
-  | { type: 'CLEAR_CART' };
-
-const cartReducer = (state: CartState, action: CartAction): CartState => {
-  switch (action.type) {
-    case 'ADD_ITEM': {
-      const existingIndex = state.items.findIndex(
-        item =>
-          item.product.id === action.payload.product.id &&
-          item.size === action.payload.size &&
-          item.color === action.payload.color
-      );
-      if (existingIndex >= 0) {
-        const updated = [...state.items];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + action.payload.quantity,
-        };
-        return { ...state, items: updated, isOpen: true };
-      }
-      return { ...state, items: [...state.items, action.payload], isOpen: true };
-    }
-    case 'REMOVE_ITEM':
-      return {
-        ...state,
-        items: state.items.filter(
-          item =>
-            !(item.product.id === action.payload.productId &&
-              item.size === action.payload.size &&
-              item.color === action.payload.color)
-        ),
-      };
-    case 'UPDATE_QUANTITY': {
-      if (action.payload.quantity <= 0) {
-        return {
-          ...state,
-          items: state.items.filter(
-            item =>
-              !(item.product.id === action.payload.productId &&
-                item.size === action.payload.size &&
-                item.color === action.payload.color)
-          ),
-        };
-      }
-      return {
-        ...state,
-        items: state.items.map(item =>
-          item.product.id === action.payload.productId &&
-          item.size === action.payload.size &&
-          item.color === action.payload.color
-            ? { ...item, quantity: action.payload.quantity }
-            : item
-        ),
-      };
-    }
-    case 'TOGGLE_CART':
-      return { ...state, isOpen: !state.isOpen };
-    case 'OPEN_CART':
-      return { ...state, isOpen: true };
-    case 'CLOSE_CART':
-      return { ...state, isOpen: false };
-    case 'CLEAR_CART':
-      return { ...state, items: [] };
-    default:
-      return state;
-  }
+const emptyCart: CartState = {
+  items: [],
+  totalItems: 0,
+  subtotal: 0,
+  discount: 0,
+  couponCode: null,
+  couponMessage: '',
+  couponValid: false,
+  shippingCharge: 0,
+  freeShippingThreshold: 999,
+  total: 0,
+  codEnabled: true,
 };
 
 interface CartContextType {
   state: CartState;
-  addItem: (item: CartItem) => void;
-  removeItem: (productId: string, size: string, color: string) => void;
-  updateQuantity: (productId: string, size: string, color: string, quantity: number) => void;
-  toggleCart: () => void;
+  isOpen: boolean;
+  loading: boolean;
+  error: string | null;
   openCart: () => void;
   closeCart: () => void;
-  clearCart: () => void;
-  totalItems: number;
-  totalPrice: number;
+  toggleCart: () => void;
+  refreshCart: (coupon?: string | null) => Promise<void>;
+  addItem: (params: {
+    productId: string;
+    size: string;
+    color: string;
+    quantity?: number;
+    openDrawer?: boolean;
+  }) => Promise<{ ok: boolean; error?: string }>;
+  removeItem: (itemId: string) => Promise<void>;
+  updateItem: (itemId: string, updates: { quantity?: number; size?: string; color?: string }) => Promise<{ ok: boolean; error?: string }>;
+  applyCoupon: (code: string) => Promise<{ ok: boolean; message: string }>;
+  clearCart: () => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [state, dispatch] = useReducer(cartReducer, { items: [], isOpen: false });
+  const [state, setState] = useState<CartState>(emptyCart);
+  const [isOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeCoupon, setActiveCoupon] = useState<string | null>(null);
 
-  const addItem = (item: CartItem) => dispatch({ type: 'ADD_ITEM', payload: item });
-  const removeItem = (productId: string, size: string, color: string) =>
-    dispatch({ type: 'REMOVE_ITEM', payload: { productId, size, color } });
-  const updateQuantity = (productId: string, size: string, color: string, quantity: number) =>
-    dispatch({ type: 'UPDATE_QUANTITY', payload: { productId, size, color, quantity } });
-  const toggleCart = () => dispatch({ type: 'TOGGLE_CART' });
-  const openCart = () => dispatch({ type: 'OPEN_CART' });
-  const closeCart = () => dispatch({ type: 'CLOSE_CART' });
-  const clearCart = () => dispatch({ type: 'CLEAR_CART' });
+  const refreshCart = useCallback(async (couponOverride?: string | null) => {
+    try {
+      const code = couponOverride !== undefined ? couponOverride : activeCoupon;
+      const url = code ? `/api/cart?coupon=${encodeURIComponent(code)}` : '/api/cart';
+      const res = await fetch(url);
+      if (res.ok) {
+        const data = (await res.json()) as CartState;
+        setState(data);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [activeCoupon]);
 
-  const totalItems = state.items.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = state.items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  useEffect(() => {
+    refreshCart();
+  }, [refreshCart]);
+
+  const addItem = async ({
+    productId,
+    size,
+    color,
+    quantity = 1,
+    openDrawer = true,
+  }: {
+    productId: string;
+    size: string;
+    color: string;
+    quantity?: number;
+    openDrawer?: boolean;
+  }) => {
+    setError(null);
+    const res = await fetch('/api/cart', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productId, size, color, quantity }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || 'Could not add item');
+      return { ok: false, error: data.error || 'Could not add item' };
+    }
+    setState(data);
+    if (openDrawer) setIsOpen(true);
+    return { ok: true };
+  };
+
+  const updateItem = async (
+    itemId: string,
+    updates: { quantity?: number; size?: string; color?: string }
+  ) => {
+    setError(null);
+    const res = await fetch('/api/cart', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ itemId, ...updates }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setError(data.error || 'Could not update item');
+      return { ok: false, error: data.error || 'Could not update item' };
+    }
+    if (activeCoupon) {
+      await refreshCart(activeCoupon);
+    } else {
+      setState(data);
+    }
+    return { ok: true };
+  };
+
+  const removeItem = async (itemId: string) => {
+    const res = await fetch(`/api/cart?itemId=${encodeURIComponent(itemId)}`, {
+      method: 'DELETE',
+    });
+    if (res.ok) {
+      if (activeCoupon) {
+        await refreshCart(activeCoupon);
+      } else {
+        setState(await res.json());
+      }
+    }
+  };
+
+  const applyCoupon = async (code: string) => {
+    const res = await fetch('/api/cart/coupon', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code }),
+    });
+    const data = (await res.json()) as CartState;
+    if (res.ok && data.couponValid) {
+      setActiveCoupon(data.couponCode);
+      setState(data);
+      return { ok: true, message: data.couponMessage };
+    }
+    setActiveCoupon(null);
+    setState(prev => ({ ...prev, discount: 0, couponCode: null, couponValid: false, couponMessage: data.couponMessage || 'Invalid coupon' }));
+    return { ok: false, message: data.couponMessage || 'Invalid coupon code' };
+  };
+
+  const clearCart = async () => {
+    const res = await fetch('/api/cart', { method: 'DELETE' });
+    if (res.ok) {
+      setActiveCoupon(null);
+      setState(await res.json());
+    }
+  };
 
   return (
-    <CartContext.Provider value={{ state, addItem, removeItem, updateQuantity, toggleCart, openCart, closeCart, clearCart, totalItems, totalPrice }}>
+    <CartContext.Provider
+      value={{
+        state,
+        isOpen,
+        loading,
+        error,
+        openCart: () => setIsOpen(true),
+        closeCart: () => setIsOpen(false),
+        toggleCart: () => setIsOpen(v => !v),
+        refreshCart,
+        addItem,
+        removeItem,
+        updateItem,
+        applyCoupon,
+        clearCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

@@ -77,28 +77,28 @@ body {
 
 /* Button base styles */
 .btn-teal {
-  @apply bg-garud-teal text-garud-cream font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-block transition-all duration-300;
+  @apply bg-garud-teal text-garud-cream font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-flex items-center justify-center gap-2 transition-all duration-300;
 }
 .btn-teal:hover {
   @apply bg-garud-teal-light;
 }
 
 .btn-cream {
-  @apply bg-garud-cream text-garud-teal font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-block transition-all duration-300;
+  @apply bg-garud-cream text-garud-teal font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-flex items-center justify-center gap-2 transition-all duration-300;
 }
 .btn-cream:hover {
   @apply bg-garud-cream-dark;
 }
 
 .btn-outline-teal {
-  @apply border border-garud-teal text-garud-teal font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-block transition-all duration-300;
+  @apply border border-garud-teal text-garud-teal font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-flex items-center justify-center gap-2 transition-all duration-300;
 }
 .btn-outline-teal:hover {
   @apply bg-garud-teal text-garud-cream;
 }
 
 .btn-outline-cream {
-  @apply border border-garud-cream/50 text-garud-cream font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-block transition-all duration-300;
+  @apply border border-garud-cream/50 text-garud-cream font-body font-semibold text-xs tracking-ultra uppercase px-8 py-4 inline-flex items-center justify-center gap-2 transition-all duration-300;
 }
 .btn-outline-cream:hover {
   @apply bg-garud-cream text-garud-teal border-garud-cream;

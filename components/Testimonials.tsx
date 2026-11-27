@@ -1,62 +1,61 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Star, Quote } from 'lucide-react';
 
-const testimonials = [
+interface TestimonialItem {
+  id?: string;
+  name: string;
+  location: string;
+  rating: number;
+  text: string;
+  product: string;
+}
+
+const fallbackTestimonials: TestimonialItem[] = [
   {
     name: 'Arjun Sharma',
     location: 'Mumbai',
     rating: 5,
-    text: 'The quality is insane. I\'ve bought premium streetwear from international brands but Garud hits different. The 240GSM fabric is thick, the print is perfect, and the fit is exactly what I wanted.',
+    text: 'The quality is insane. The 240GSM fabric is thick, the print is crisp, and the oversized fit is spot on.',
     product: 'Garud Mythic Tee',
   },
   {
     name: 'Rahul Verma',
     location: 'Delhi',
     rating: 5,
-    text: 'Finally an Indian brand that gets it. The Garud Heavyweight Hoodie is my most worn piece. 400GSM — it\'s like wearing armour. Fast delivery, premium packaging. 10/10.',
+    text: 'Finally an Indian streetwear brand with real heavyweight 400GSM hoodies. Fast delivery and premium packaging.',
     product: 'Garud Heavyweight Hoodie',
   },
   {
     name: 'Vikram Singh',
     location: 'Bangalore',
     rating: 5,
-    text: 'Ordered the Divine Wings Tee. The heritage crest print is stunning in person. Photographs beautifully too. The cultural identity in the design is what sets Garud apart.',
+    text: 'The cultural identity in the design is what sets Garud apart. Worn it everywhere and gets compliments daily.',
     product: 'Divine Wings Tee',
-  },
-  {
-    name: 'Aditya Nair',
-    location: 'Pune',
-    rating: 5,
-    text: 'Bought the bomber jacket for a festival and everyone kept asking where it\'s from. The eagle embroidery on the back is an absolute statement. Sizing is perfect.',
-    product: 'Garud Bomber Jacket',
-  },
-  {
-    name: 'Karan Mehra',
-    location: 'Hyderabad',
-    rating: 4,
-    text: 'The Warrior Script Tee with Devanagari text is exactly what I\'ve been looking for. Comfortable, premium, and culturally rooted. Shipping was quick.',
-    product: 'Warrior Script Tee',
-  },
-  {
-    name: 'Suresh Patel',
-    location: 'Ahmedabad',
-    rating: 5,
-    text: 'As someone who\'s worn both Indian and international streetwear, Garud competes with the best. The attention to detail — from the GSM weight to the print placement — is extraordinary.',
-    product: 'Eagle Crest Hoodie',
   },
 ];
 
 export default function Testimonials() {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true, margin: '-80px' });
+  const [items, setItems] = useState<TestimonialItem[]>(fallbackTestimonials);
+
+  useEffect(() => {
+    fetch('/api/storefront')
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data.testimonials) && data.testimonials.length > 0) {
+          setItems(data.testimonials);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   return (
     <section ref={ref} className="bg-garud-cream-dark/60 py-20 md:py-28 border-t border-garud-cream-border">
       <div className="max-w-7xl mx-auto px-6 md:px-16">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -67,7 +66,6 @@ export default function Testimonials() {
           <h2 className="font-display text-4xl md:text-6xl tracking-widest text-garud-teal font-bold">THE WARRIORS SPEAK</h2>
         </motion.div>
 
-        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -86,11 +84,10 @@ export default function Testimonials() {
           ))}
         </motion.div>
 
-        {/* Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {testimonials.map((t, i) => (
+          {items.map((t, i) => (
             <motion.div
-              key={i}
+              key={t.id || i}
               initial={{ opacity: 0, y: 24 }}
               animate={inView ? { opacity: 1, y: 0 } : {}}
               transition={{ duration: 0.5, delay: i * 0.08 }}

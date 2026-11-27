@@ -4,10 +4,10 @@ import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import Link from 'next/link';
 import ProductCard from './ProductCard';
-import { Product } from '@/data/products';
+import type { ProductDTO } from '@/lib/product-utils';
 
 interface ProductGridProps {
-  products: Product[];
+  products: ProductDTO[];
   title: string;
   subtitle?: string;
   viewAllHref?: string;
@@ -27,7 +27,6 @@ export default function ProductGrid({
   return (
     <section ref={ref} className="bg-transparent py-20 md:py-28">
       <div className="max-w-7xl mx-auto px-6 md:px-16">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           animate={inView ? { opacity: 1, y: 0 } : {}}
@@ -45,10 +44,8 @@ export default function ProductGrid({
           </Link>
         </motion.div>
 
-        {/* Teal line */}
         <div className="teal-line mb-12" />
 
-        {/* Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-10">
           {products.map((product, i) => (
             <motion.div
@@ -62,7 +59,6 @@ export default function ProductGrid({
           ))}
         </div>
 
-        {/* View All CTA */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={inView ? { opacity: 1 } : {}}

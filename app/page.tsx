@@ -5,11 +5,29 @@ import BrandStory from '@/components/BrandStory';
 import CampaignBanner from '@/components/CampaignBanner';
 import Testimonials from '@/components/Testimonials';
 import Newsletter from '@/components/Newsletter';
-import { getFeaturedProducts, getNewArrivals } from '@/data/products';
+import { prisma } from '@/lib/prisma';
+import { serializeProduct } from '@/lib/product-utils';
 
-export default function HomePage() {
-  const featured = getFeaturedProducts();
-  const newArrivals = getNewArrivals();
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const [newRows, bestRows] = await Promise.all([
+    prisma.product.findMany({
+      where: { isActive: true, isNewArrival: true },
+      include: { variants: true },
+      take: 8,
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.product.findMany({
+      where: { isActive: true, isBestseller: true },
+      include: { variants: true },
+      take: 8,
+      orderBy: { reviewCount: 'desc' },
+    }),
+  ]);
+
+  const newArrivals = newRows.map(serializeProduct);
+  const featured = bestRows.map(serializeProduct);
 
   return (
     <div className="page-in">

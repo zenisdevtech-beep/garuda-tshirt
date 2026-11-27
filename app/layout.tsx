@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter, Cinzel } from 'next/font/google';
 import './globals.css';
+import { AuthProvider } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import Navbar from '@/components/Navbar';
 import CartSidebar from '@/components/CartSidebar';
@@ -23,7 +24,8 @@ const cinzel = Cinzel({
 
 export const metadata: Metadata = {
   title: 'GARUD — Mythic Indian Streetwear',
-  description: 'Born from myth. Worn by warriors. Garud is India\'s premium heritage streetwear brand inspired by the divine eagle.',
+  description:
+    'Born from myth. Worn by warriors. Garud is India\'s premium heritage streetwear brand inspired by the divine eagle.',
   keywords: 'garud, indian streetwear, premium clothing, warrior wear, indian fashion, oversized tees, hoodies',
   openGraph: {
     title: 'GARUD — Mythic Indian Streetwear',
@@ -36,14 +38,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${cinzel.variable}`}>
       <body className="bg-garud-cream text-garud-ink font-body">
-        <CartProvider>
-          <LogoWatermark />
-          <AnnouncementBar />
-          <Navbar />
-          <CartSidebar />
-          <main className="relative z-10">{children}</main>
-          <Footer />
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            <LogoWatermark />
+            <AnnouncementBar />
+            <Navbar />
+            <CartSidebar />
+            <main>{children}</main>
+            <Footer />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
