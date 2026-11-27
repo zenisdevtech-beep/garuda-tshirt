@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "postinstall": "prisma generate",
-    "build": "prisma generate && prisma db push --skip-generate && node prisma/seed.mjs && UV_THREADPOOL_SIZE=2 next build",
+    "build": "prisma generate && prisma db push --skip-generate && node prisma/seed.mjs && UV_THREADPOOL_SIZE=2 next build && node -e \"const fs=require('fs');if(fs.existsSync('.next/standalone')){fs.mkdirSync('.next/standalone/prisma',{recursive:true});fs.copyFileSync('prisma/dev.db','.next/standalone/prisma/dev.db');fs.copyFileSync('prisma/schema.prisma','.next/standalone/prisma/schema.prisma');}\"",
     "start": "./node_modules/.bin/prisma db push --skip-generate && node prisma/seed.mjs && next start",
     "lint": "next lint"
   },
@@ -22,6 +22,7 @@
     "razorpay": "^2.9.8",
     "react": "^18",
     "react-dom": "^18",
+    "sharp": "^0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {
